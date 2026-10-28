@@ -1,9 +1,13 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 
-const pool = new Pool({
-  connectionString: process.env.DB_URL || 'postgres://postgres:postgrespassword@localhost:5432/order_db',
-});
+const connectionString = process.env.DB_URL;
+
+if (!connectionString) {
+  throw new Error('DB_URL is required');
+}
+
+const pool = new Pool({ connectionString });
 
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client for order_db', err);

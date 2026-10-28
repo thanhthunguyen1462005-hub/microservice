@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "test": "node test/test-runner.js",
-    "docker:up": "docker-compose up -d --build",
-    "docker:down": "docker-compose down -v",
-    "docker:logs": "docker-compose logs -f"
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down -v",
+    "docker:logs": "docker compose logs -f"
   },
   "keywords": [
     "microservices",

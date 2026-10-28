@@ -2,7 +2,11 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from './db.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_123';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET is required');
+}
 
 export async function registerUser({ username, password, email, phone }) {
   if (!username || !password) {

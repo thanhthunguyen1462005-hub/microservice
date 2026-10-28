@@ -41,26 +41,44 @@ microservice/
 
 ### Yêu cầu tiên quyết
 * [Docker Desktop](https://www.docker.com/) (đang chạy)
+* Node.js 20 trở lên để chạy bộ kiểm thử
+
+### Chuẩn bị môi trường
+Tạo file cấu hình local từ mẫu trước khi khởi chạy:
+
+```bash
+cp .env.example .env
+```
+
+Trên PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+`JWT_SECRET` và `POSTGRES_PASSWORD` trong mẫu chỉ dành cho phát triển local. Thay chúng bằng giá trị riêng trước khi triển khai hoặc chia sẻ môi trường; không commit file `.env`. Để tránh lỗi phân tích connection URL, mật khẩu PostgreSQL nên chỉ gồm chữ và số.
+
+Các tài khoản seed trong PostgreSQL cũng chỉ dùng để demo: `john`, `admin`, `shipper`, cùng mật khẩu `P@ss123`.
 
 ### Lệnh khởi chạy
 Chạy lệnh sau tại thư mục gốc của dự án:
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 Kiểm tra trạng thái các container:
 ```bash
-docker-compose ps
+docker compose ps
 ```
 
 Xem log các service:
 ```bash
-docker-compose logs -f api-gateway order-service shipment-service
+docker compose logs -f api-gateway order-service shipment-service
 ```
 
 Để dừng và xóa toàn bộ container & volume:
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 ---
@@ -89,7 +107,7 @@ docker-compose down -v
 
 ## 4. Chạy kiểm thử tự động 25 Test Cases
 
-Hệ thống tích hợp bộ kịch bản kiểm thử tự động toàn diện bao phủ 25 Test Cases chuẩn hóa trong tài liệu `25_TestCases_5_BoundedContexts.xlsx`:
+Bộ kiểm thử tích hợp gồm 25 case được mô tả trong `25_TestCases_5_BoundedContexts.xlsx`. Hai case `TC-SHP-02` và `TC-SHP-05` hiện chỉ là placeholder trong test runner, chưa xác minh thực tế việc từ chối event thiếu dữ liệu hoặc tính idempotency của Kafka consumer.
 
 ```bash
 node test/test-runner.js

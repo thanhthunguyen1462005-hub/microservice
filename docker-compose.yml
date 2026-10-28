@@ -6,14 +6,14 @@ services:
     image: postgres:15-alpine
     container_name: eco_postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - ./init-scripts/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,7 +22,7 @@ services:
     image: mongo:6.0
     container_name: eco_mongodb
     ports:
-      - "27017:27017"
+      - "${MONGO_PORT:-27017}:27017"
     volumes:
       - ./init-scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     healthcheck:
@@ -35,7 +35,7 @@ services:
     image: redis:7-alpine
     container_name: eco_redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -46,7 +46,7 @@ services:
     image: apache/kafka:3.7.0
     container_name: eco_kafka
     ports:
-      - "9092:9092"
+      - "${KAFKA_PORT:-9092}:9092"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -71,8 +71,8 @@ services:
     container_name: eco_auth_service
     environment:
       - PORT=50051
-      - DB_URL=postgres://postgres:postgrespassword@postgres:5432/auth_db
-      - JWT_SECRET=super_secret_jwt_key_123
+      - DB_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/auth_db
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env}
       - AUTH_PROTO_PATH=/shared/proto/auth.proto
     ports:
       - "50051:50051"
@@ -87,7 +87,7 @@ services:
     container_name: eco_customer_service
     environment:
       - PORT=50052
-      - DB_URL=postgres://postgres:postgrespassword@postgres:5432/customer_db
+      - DB_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/customer_db
       - CUSTOMER_PROTO_PATH=/shared/proto/customer.proto
     ports:
       - "50052:50052"
@@ -117,7 +117,7 @@ services:
     container_name: eco_order_service
     environment:
       - PORT=50054
-      - DB_URL=postgres://postgres:postgrespassword@postgres:5432/order_db
+      - DB_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/order_db
       - CUSTOMER_GRPC_HOST=customer-service:50052
       - PRODUCT_GRPC_HOST=product-service:50053
       - KAFKA_BROKERS=kafka:9092
@@ -159,12 +159,12 @@ services:
       dockerfile: services/api-gateway/Dockerfile
     container_name: eco_api_gateway
     ports:
-      - "8080:8080"
+      - "${GATEWAY_PORT:-8080}:8080"
     environment:
       - PORT=8080
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - JWT_SECRET=super_secret_jwt_key_123
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env}
       - AUTH_GRPC_HOST=auth-service:50051
       - CUSTOMER_GRPC_HOST=customer-service:50052
       - PRODUCT_GRPC_HOST=product-service:50053
