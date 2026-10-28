@@ -44,19 +44,15 @@ microservice/
 * Node.js 20 trở lên để chạy bộ kiểm thử
 
 ### Chuẩn bị môi trường
-Tạo file cấu hình local từ mẫu trước khi khởi chạy:
+Tạo file `.env` tại thư mục gốc của dự án với các biến bắt buộc:
 
-```bash
-cp .env.example .env
+```dotenv
+JWT_SECRET=replace_with_a_long_random_local_secret
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=local_dev_password
 ```
 
-Trên PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-`JWT_SECRET` và `POSTGRES_PASSWORD` trong mẫu chỉ dành cho phát triển local. Thay chúng bằng giá trị riêng trước khi triển khai hoặc chia sẻ môi trường; không commit file `.env`. Để tránh lỗi phân tích connection URL, mật khẩu PostgreSQL nên chỉ gồm chữ và số.
+Các giá trị trên chỉ dành cho phát triển local. Thay chúng bằng giá trị riêng trước khi triển khai hoặc chia sẻ môi trường; không commit file `.env`. Để tránh lỗi phân tích connection URL, mật khẩu PostgreSQL nên chỉ gồm chữ và số.
 
 Các tài khoản seed trong PostgreSQL cũng chỉ dùng để demo: `john`, `admin`, `shipper`, cùng mật khẩu `P@ss123`.
 
