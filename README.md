@@ -2,7 +2,7 @@
 
 Hệ thống Backend RESTful API thương mại điện tử (MVP) được xây dựng bằng **Node.js** tuân thủ tuyệt đối các nguyên tắc:
 * **Microservices Architecture**: Phân tách thành 5 service độc lập tương ứng 5 Bounded Contexts theo Domain-Driven Design (DDD).
-* **Database-per-Service (Polyglot Persistence)**: Kết hợp PostgreSQL (Auth, Customer, Order) và MongoDB (Product, Shipment).
+* **Database-per-Service (Polyglot Persistence)**: Mỗi service có container database riêng: PostgreSQL cho Auth, Customer, Order; MongoDB cho Product, Shipment.
 * **Giao tiếp đồng bộ (Synchronous)**: **gRPC** hiệu năng cao giữa API Gateway và các Service nội bộ, cũng như giữa Order Service với Customer Service & Product Service.
 * **Giao tiếp bất đồng bộ (Asynchronous Event-Driven)**: **Apache Kafka** kết hợp **Transactional Outbox Pattern** đảm bảo chuyển giao sự kiện `OrderCreated` sang Shipment Service không bị mất mát hay thiếu nhất quán dữ liệu.
 * **API Gateway**: Quản lý tập trung Routing, Authentication (JWT), Authorization (RBAC), Redis Rate Limiting, Redis Response Caching, Centralized Logging và Health Check.
@@ -13,10 +13,13 @@ Hệ thống Backend RESTful API thương mại điện tử (MVP) được xây
 
 ```text
 microservice/
-├── docker-compose.yml              # Điều phối 10 container (Postgres, Mongo, Redis, Kafka, 6 node services)
+├── docker-compose.yml              # Điều phối 13 container (7 hạ tầng, 6 ứng dụng)
 ├── init-scripts/
-│   ├── postgres-init.sql          # Khởi tạo auth_db, customer_db, order_db và seed data
-│   └── mongo-init.js              # Khởi tạo product_db, shipment_db và indexes
+│   ├── postgres-init.sql          # Khởi tạo auth_db và seed data
+│   ├── customer-postgres-init.sql # Khởi tạo customer_db và seed data
+│   ├── order-postgres-init.sql    # Khởi tạo order_db và outbox
+│   ├── mongo-init.js              # Khởi tạo product_db và indexes
+│   └── shipment-mongo-init.js     # Khởi tạo shipment_db và indexes
 ├── shared/
 │   └── proto/                     # gRPC Protobuf Contracts
 │       ├── auth.proto

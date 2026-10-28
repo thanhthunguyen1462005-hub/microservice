@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - ./init-scripts/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
@@ -18,13 +18,60 @@ services:
       timeout: 5s
       retries: 5
 
+  customer-postgres:
+    image: postgres:15-alpine
+    container_name: eco_customer_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: customer_db
+    ports:
+      - "${CUSTOMER_POSTGRES_PORT:-5434}:5432"
+    volumes:
+      - ./init-scripts/customer-postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d customer_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  order-postgres:
+    image: postgres:15-alpine
+    container_name: eco_order_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: order_db
+    ports:
+      - "${ORDER_POSTGRES_PORT:-5435}:5432"
+    volumes:
+      - ./init-scripts/order-postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d order_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   mongodb:
     image: mongo:6.0
     container_name: eco_mongodb
     ports:
-      - "${MONGO_PORT:-27017}:27017"
+      - "${MONGO_PORT:-27018}:27017"
     volumes:
       - ./init-scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  shipment-mongodb:
+    image: mongo:6.0
+    container_name: eco_shipment_mongodb
+    ports:
+      - "${SHIPMENT_MONGO_PORT:-27019}:27017"
+    volumes:
+      - ./init-scripts/shipment-mongo-init.js:/docker-entrypoint-initdb.d/shipment-mongo-init.js:ro
     healthcheck:
       test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"]
       interval: 5s
@@ -87,12 +134,12 @@ services:
     container_name: eco_customer_service
     environment:
       - PORT=50052
-      - DB_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/customer_db
+      - DB_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@customer-postgres:5432/customer_db
       - CUSTOMER_PROTO_PATH=/shared/proto/customer.proto
     ports:
       - "50052:50052"
     depends_on:
-      postgres:
+      customer-postgres:
         condition: service_healthy
 
   product-service:
@@ -117,7 +164,7 @@ services:
     container_name: eco_order_service
     environment:
       - PORT=50054
-      - DB_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/order_db
+      - DB_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@order-postgres:5432/order_db
       - CUSTOMER_GRPC_HOST=customer-service:50052
       - PRODUCT_GRPC_HOST=product-service:50053
       - KAFKA_BROKERS=kafka:9092
@@ -127,7 +174,7 @@ services:
     ports:
       - "50054:50054"
     depends_on:
-      postgres:
+      order-postgres:
         condition: service_healthy
       kafka:
         condition: service_started
@@ -139,13 +186,13 @@ services:
     container_name: eco_shipment_service
     environment:
       - PORT=50055
-      - MONGO_URI=mongodb://mongodb:27017/shipment_db
+      - MONGO_URI=mongodb://shipment-mongodb:27017/shipment_db
       - KAFKA_BROKERS=kafka:9092
       - SHIPMENT_PROTO_PATH=/shared/proto/shipment.proto
     ports:
       - "50055:50055"
     depends_on:
-      mongodb:
+      shipment-mongodb:
         condition: service_healthy
       kafka:
         condition: service_started

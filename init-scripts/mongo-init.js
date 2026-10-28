@@ -7,8 +7,3 @@ db.products.insertMany([
   { pid: 3, pname: "Mechanical Keyboard", price: 100.0, quantity: 20 }
 ]);
 db.products.createIndex({ pid: 1 }, { unique: true });
-
-// 2. SHIPMENT DATABASE
-db = db.getSiblingDB('shipment_db');
-db.shipments.createIndex({ shipid: 1 }, { unique: true });
-db.shipments.createIndex({ oid: 1 }, { unique: true });
