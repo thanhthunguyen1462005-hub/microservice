@@ -1,0 +1,23 @@
+{
+  "name": "ecommerce-microservices-mvp",
+  "version": "1.0.0",
+  "description": "Backend RESTful API E-commerce MVP with Node.js, Microservices, DDD, Database-per-Service, gRPC, Kafka & Redis",
+  "type": "module",
+  "scripts": {
+    "test": "node test/test-runner.js",
+    "docker:up": "docker-compose up -d --build",
+    "docker:down": "docker-compose down -v",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "keywords": [
+    "microservices",
+    "ddd",
+    "nodejs",
+    "grpc",
+    "kafka",
+    "redis",
+    "ecommerce"
+  ],
+  "author": "",
+  "license": "MIT"
+}
